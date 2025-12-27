@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { sudanStates } from '../data/states';
-import { Send, User, MapPin, Phone } from 'lucide-react';
+import { Send, User, MapPin, Phone, CheckCircle, AlertCircle } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 export const RegistrationForm = () => {
   const [formData, setFormData] = useState({
@@ -9,22 +10,58 @@ export const RegistrationForm = () => {
     phone: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [status, setStatus] = useState<{ type: 'success' | 'error' | null; message: string }>({ type: null, message: '' });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      alert(`تم استلام البيانات بنجاح!\nالاسم: ${formData.name}\nالولاية: ${formData.state}`);
-      setIsSubmitting(false);
+    setStatus({ type: null, message: '' });
+
+    try {
+      const { error } = await supabase
+        .from('registrations')
+        .insert([
+          { 
+            name: formData.name, 
+            state: formData.state, 
+            phone: formData.phone,
+            created_at: new Date().toISOString()
+          }
+        ]);
+
+      if (error) throw error;
+
+      setStatus({ type: 'success', message: 'تم استلام البيانات بنجاح!' });
       setFormData({ name: '', state: '', phone: '' });
-    }, 1500);
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => {
+        setStatus({ type: null, message: '' });
+      }, 3000);
+
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      setStatus({ type: 'error', message: 'حدث خطأ أثناء الإرسال. الرجاء المحاولة مرة أخرى.' });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 w-full max-w-md bg-white p-8 rounded-2xl shadow-xl border border-yellow-100/50">
-      <div className="text-center mb-8">
+    <form onSubmit={handleSubmit} className="space-y-6 w-full max-w-md bg-white p-8 rounded-2xl shadow-xl border border-yellow-100/50 relative overflow-hidden">
+      {/* Status Message Overlay */}
+      {status.type && (
+        <div className={`absolute top-0 left-0 right-0 p-4 text-center text-sm font-medium transition-all transform ${
+          status.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+        }`}>
+          <div className="flex items-center justify-center gap-2">
+            {status.type === 'success' ? <CheckCircle size={18} /> : <AlertCircle size={18} />}
+            <span>{status.message}</span>
+          </div>
+        </div>
+      )}
+
+      <div className="text-center mb-8 mt-2">
         <h2 className="text-2xl font-bold text-gray-800 mb-2">نموذج التسجيل</h2>
         <p className="text-gray-500 text-sm">يرجى ملء البيانات التالية بدقة</p>
       </div>
