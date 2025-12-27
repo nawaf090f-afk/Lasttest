@@ -1,4 +1,4 @@
-name: Build Android AAB
+name: Build Web App
 on:
   push:
     branches: [ main ]
@@ -6,32 +6,17 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
           node-version: 18
-      - name: Install Dependencies
-        run: npm install
-      - name: Build Project
-        run: npm run build
-      - name: Setup Java
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-      - name: Add Capacitor
+      - name: Install and Build
         run: |
-          npm install @capacitor/core @capacitor/cli @capacitor/android
-          npx cap init "My App" "com.example.app" --web-dir dist
-          npx cap add android
-          npx cap sync
-      - name: Build AAB
-        run: |
-          cd android
-          ./gradlew bundleRelease
-      - name: Upload AAB
+          npm install
+          npm run build --if-present
+      - name: Upload Result
         uses: actions/upload-artifact@v4
         with:
-          name: app-bundle
-          path: android/app/build/outputs/bundle/release/app-release.aab
+          name: web-app
+          path: .
