@@ -1,4 +1,4 @@
-name: Build Web App
+name: Build Android AAB
 on:
   push:
     branches: [ main ]
@@ -10,13 +10,22 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 18
-      - name: Install and Build
+          node-version: 20
+      - name: Install and Build Web
         run: |
           npm install
-          npm run build --if-present
-      - name: Upload Result
+          npm run build
+      - name: Create Android Project
+        run: |
+          npx cap init "My App" "com.nawaf.app" --web-dir dist
+          npx cap add android
+          npx cap sync
+      - name: Build AAB
+        run: |
+          cd android
+          ./gradlew bundleRelease
+      - name: Upload AAB
         uses: actions/upload-artifact@v4
         with:
-          name: web-app
-          path: .
+          name: android-app-bundle
+          path: android/app/build/outputs/bundle/release/app-release.aab
