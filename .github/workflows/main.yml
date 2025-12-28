@@ -1,4 +1,4 @@
-name: Final APK Build
+name: Ultimate APK Build
 on:
   push:
     branches: [ main ]
@@ -16,24 +16,33 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Fix Android Structure
+      - name: Install Dependencies and CLI
         run: |
-          # لو المجلد مش موجود حنعمله ونحط فيه ملفات التشغيل الأساسية
-          mkdir -p android/app
-          npx react-native ctx-clean || true
-          
-      - name: Install Dependencies
-        run: npm install --legacy-peer-deps
+          npm install --legacy-peer-deps
+          npm install @react-native-community/cli --save-dev
 
+      - name: Initialize Android Files
+        run: |
+          # ده بيحل مشكلة الملفات الناقصة و الـ CLI اللي ظهرت في الصورة
+          npx react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res || true
+          
       - name: Build APK Only
         run: |
-          # تنفيذ أمر بناء الـ APK مباشرة وتخطي أخطاء المجلدات
-          npx react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res || true
-          cd android && chmod +x gradlew || echo "No gradlew found"
-          ./gradlew assembleRelease || npx react-native build-android --mode release
+          # محاولة البناء المباشر وتخطي أخطاء المجلدات
+          if [ -d "android" ]; then
+            cd android
+            [ -f gradlew ] || gradle init 
+            chmod +x gradlew
+            ./gradlew assembleRelease --stacktrace
+          else
+            npx react-native build-android --mode release
+          fi
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
+        with:
+          name: My_App_APK
+          path: "**/*.apk"
         with:
           name: My_App_APK
           path: "**/*.apk"
