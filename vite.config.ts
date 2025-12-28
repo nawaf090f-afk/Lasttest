@@ -3,7 +3,8 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
-  base: '/Lasttest/',
+  // غيرنا المسار عشان يقرأ الملفات من المجلد الحالي طوالي
+  base: './', 
   optimizeDeps: {
     exclude: ['lucide-react'],
   },
