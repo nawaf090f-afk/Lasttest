@@ -1,4 +1,4 @@
-name: Global APK Build
+name: Generate Final APK
 on:
   push:
     branches: [ main ]
@@ -16,24 +16,24 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Install Dependencies
-        run: npm install --legacy-peer-deps
-
-      - name: Find and Build APK
+      - name: Install Dependencies and Fix CLI
         run: |
-          # البحث عن ملف gradlew في أي مكان داخل المشروع
-          GRADLEW_PATH=$(find . -name gradlew | head -n 1)
-          if [ -z "$GRADLEW_PATH" ]; then
-            echo "Error: Gradlew not found. Building with fallback..."
-            npx react-native build-android --mode release
-          else
-            DIR=$(dirname "$GRADLEW_PATH")
-            cd "$DIR"
+          npm install --legacy-peer-deps
+          npm install @react-native-community/cli --save-dev
+
+      - name: Build APK Only
+        run: |
+          # البحث عن مجلد الأندرويد في أي مكان وبناء الـ APK
+          ANDROID_DIR=$(find . -name android -type d | head -n 1)
+          if [ -d "$ANDROID_DIR" ]; then
+            cd "$ANDROID_DIR"
             chmod +x gradlew
             ./gradlew assembleRelease
+          else
+            npx react-native build-android --mode release
           fi
 
-      - name: Upload APK Only
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: My_Final_APK
