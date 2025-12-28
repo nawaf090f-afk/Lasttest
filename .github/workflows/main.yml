@@ -19,7 +19,7 @@ jobs:
       - name: Install Dependencies
         run: npm install --legacy-peer-deps
 
-      - name: Build Android APK
+      - name: Build APK
         run: |
           cd android && chmod +x gradlew
           ./gradlew assembleRelease
@@ -28,16 +28,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: My_Final_APK
-          path: android/app/build/outputs/apk/release/*.apk
-          else
-            npx react-native build-android --mode release
-          fi
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: My_App_APK
-          path: "**/*.apk"
-        with:
-          name: My_App_APK
           path: "**/*.apk"
