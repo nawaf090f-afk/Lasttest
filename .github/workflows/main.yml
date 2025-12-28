@@ -1,4 +1,4 @@
-name: Generate APK
+name: Generate APK Only
 on:
   push:
     branches: [ main ]
@@ -19,23 +19,15 @@ jobs:
       - name: Install Dependencies
         run: npm install --legacy-peer-deps
 
-      - name: Build Android APK
+      - name: Force Build APK
         run: |
-          # محاولة البحث عن gradlew في أي مكان وتشغيله
-          GRADLE_PATH=$(find . -name gradlew)
-          if [ -n "$GRADLE_PATH" ]; then
-            DIR=$(dirname "$GRADLE_PATH")
-            cd "$DIR"
-            chmod +x gradlew
-            ./gradlew assembleRelease
-          else
-            echo "Gradle wrapper not found, trying alternative build"
-            npx react-native build-android --mode release || true
-          fi
+          # البحث عن ملف gradlew وتشغيله لبناء APK فقط
+          chmod +x $(find . -name gradlew)
+          cd $(find . -name android -type d | head -n 1)
+          ./gradlew assembleRelease
 
-      - name: Upload APK
+      - name: Upload Only APK
         uses: actions/upload-artifact@v4
         with:
-          name: Final_App_APK
+          name: My_Final_APK
           path: "**/*.apk"
-          path: android/app/build/outputs/apk/release/*.apk
