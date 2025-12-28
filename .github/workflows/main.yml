@@ -17,18 +17,21 @@ jobs:
           distribution: 'temurin'
 
       - name: Install Dependencies
-        run: npm install --legacy-peer-deps
-
-      - name: Build Android APK
         run: |
-          if [ -d "android" ]; then
-            cd android && chmod +x gradlew && ./gradlew assembleRelease
-          else
-            npx react-native build-android --mode release
-          fi
+          npm install --legacy-peer-deps
+          npm install @react-native-community/cli --save-dev
+
+      - name: Create Android Assets Folder
+        run: mkdir -p android/app/src/main/assets
+
+      - name: Build Android Release
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleRelease --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: Final_App_APK
-          path: "**/*.apk" # ده حيخلي النظام يلم أي ملف APK يلقاه في أي مكان
+          path: android/app/build/outputs/apk/release/*.apk
