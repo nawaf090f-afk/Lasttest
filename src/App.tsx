@@ -1,16 +1,23 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Login } from './pages/Login';
+import { Signup } from './pages/Signup';
+import { ForgotPassword } from './pages/ForgotPassword';
 import { Dashboard } from './pages/Dashboard';
 
-// شلنا نظام الحماية مؤقتاً عشان الموقع يفتح معاك طوالي وتشوف صفحة الطلبات
 function App() {
   return (
-    <Router basename="/Lasttest">
+    // الـ HashRouter هو الحل الوحيد المضمون لـ GitHub Pages
+    <Router>
       <Routes>
-        {/* خليت ليك صفحة الداشبورد هي الصفحة الأساسية */}
-        <Route path="/" element={<Dashboard />} />
-        {/* لو في أي مسار غلط، برضه يوديك للداشبورد */}
-        <Route path="*" element={<Dashboard />} />
+        {/* بنخلي صفحة اللوجن هي الواجهة الأساسية زي الرابط الأرسلته */}
+        <Route path="/" element={<Login />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        {/* لو أي زول كتب رابط غلط يرجعه للوجن */}
+        <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </Router>
   );
