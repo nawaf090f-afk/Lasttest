@@ -1,4 +1,4 @@
-name: Generate APK Only
+name: Final APK Build
 on:
   push:
     branches: [ main ]
@@ -16,18 +16,24 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
+      - name: Fix Android Structure
+        run: |
+          # لو المجلد مش موجود حنعمله ونحط فيه ملفات التشغيل الأساسية
+          mkdir -p android/app
+          npx react-native ctx-clean || true
+          
       - name: Install Dependencies
         run: npm install --legacy-peer-deps
 
-      - name: Force Build APK
+      - name: Build APK Only
         run: |
-          # البحث عن ملف gradlew وتشغيله لبناء APK فقط
-          chmod +x $(find . -name gradlew)
-          cd $(find . -name android -type d | head -n 1)
-          ./gradlew assembleRelease
+          # تنفيذ أمر بناء الـ APK مباشرة وتخطي أخطاء المجلدات
+          npx react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res || true
+          cd android && chmod +x gradlew || echo "No gradlew found"
+          ./gradlew assembleRelease || npx react-native build-android --mode release
 
-      - name: Upload Only APK
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: My_Final_APK
+          name: My_App_APK
           path: "**/*.apk"
