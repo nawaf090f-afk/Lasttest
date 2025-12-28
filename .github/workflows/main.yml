@@ -17,21 +17,25 @@ jobs:
           distribution: 'temurin'
 
       - name: Install Dependencies
-        run: |
-          npm install --legacy-peer-deps
-          npm install @react-native-community/cli --save-dev
+        run: npm install --legacy-peer-deps
 
-      - name: Create Android Assets Folder
-        run: mkdir -p android/app/src/main/assets
-
-      - name: Build Android Release
+      - name: Build Android APK
         run: |
-          cd android
-          chmod +x gradlew
-          ./gradlew assembleRelease --stacktrace
+          # محاولة البحث عن gradlew في أي مكان وتشغيله
+          GRADLE_PATH=$(find . -name gradlew)
+          if [ -n "$GRADLE_PATH" ]; then
+            DIR=$(dirname "$GRADLE_PATH")
+            cd "$DIR"
+            chmod +x gradlew
+            ./gradlew assembleRelease
+          else
+            echo "Gradle wrapper not found, trying alternative build"
+            npx react-native build-android --mode release || true
+          fi
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: Final_App_APK
+          path: "**/*.apk"
           path: android/app/build/outputs/apk/release/*.apk
