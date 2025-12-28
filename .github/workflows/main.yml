@@ -1,4 +1,4 @@
-name: Generate APK Only
+name: Global APK Build
 on:
   push:
     branches: [ main ]
@@ -19,12 +19,21 @@ jobs:
       - name: Install Dependencies
         run: npm install --legacy-peer-deps
 
-      - name: Build APK
+      - name: Find and Build APK
         run: |
-          cd android && chmod +x gradlew
-          ./gradlew assembleRelease
+          # البحث عن ملف gradlew في أي مكان داخل المشروع
+          GRADLEW_PATH=$(find . -name gradlew | head -n 1)
+          if [ -z "$GRADLEW_PATH" ]; then
+            echo "Error: Gradlew not found. Building with fallback..."
+            npx react-native build-android --mode release
+          else
+            DIR=$(dirname "$GRADLEW_PATH")
+            cd "$DIR"
+            chmod +x gradlew
+            ./gradlew assembleRelease
+          fi
 
-      - name: Upload APK
+      - name: Upload APK Only
         uses: actions/upload-artifact@v4
         with:
           name: My_Final_APK
