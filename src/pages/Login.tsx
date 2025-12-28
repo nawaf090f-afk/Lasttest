@@ -31,7 +31,12 @@ export const Login = () => {
         throw new Error('رقم الهاتف أو كلمة المرور غير صحيحة');
       }
 
-      login({ name: data.full_name, phone: data.phone });
+      // Login with role
+      login({ 
+        name: data.full_name, 
+        phone: data.phone,
+        role: data.role || 'client' // Fallback for old users
+      });
       navigate('/');
     } catch (err: any) {
       setError(err.message || 'فشل تسجيل الدخول');

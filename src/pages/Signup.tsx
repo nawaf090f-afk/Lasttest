@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { UserPlus, Phone, Lock, User, HelpCircle, CheckCircle, AlertCircle } from 'lucide-react';
+import { UserPlus, Phone, Lock, User, HelpCircle, AlertCircle, Briefcase } from 'lucide-react';
 import { securityQuestions } from '../data/securityQuestions';
 import { supabase } from '../lib/supabase';
 
@@ -11,7 +11,8 @@ export const Signup = () => {
     phone: '',
     password: '',
     securityQuestion: '',
-    securityAnswer: ''
+    securityAnswer: '',
+    role: 'client' // Default role
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -40,9 +41,10 @@ export const Signup = () => {
           {
             full_name: formData.name,
             phone: formData.phone,
-            password: formData.password, // Note: In production, hash this password!
+            password: formData.password,
             security_question: formData.securityQuestion,
-            security_answer: formData.securityAnswer
+            security_answer: formData.securityAnswer,
+            role: formData.role
           }
         ]);
 
@@ -135,10 +137,42 @@ export const Signup = () => {
             />
           </div>
 
+          {/* Role Selection */}
+          <div className="relative pt-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+              <Briefcase size={16} />
+              نوع العضوية
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setFormData({...formData, role: 'client'})}
+                className={`p-3 rounded-xl border-2 transition-all text-center ${
+                  formData.role === 'client' 
+                    ? 'border-yellow-500 bg-yellow-50 text-yellow-800 font-bold' 
+                    : 'border-gray-200 text-gray-500 hover:border-yellow-200'
+                }`}
+              >
+                عميل عادي
+              </button>
+              <button
+                type="button"
+                onClick={() => setFormData({...formData, role: 'agent'})}
+                className={`p-3 rounded-xl border-2 transition-all text-center ${
+                  formData.role === 'agent' 
+                    ? 'border-yellow-500 bg-yellow-50 text-yellow-800 font-bold' 
+                    : 'border-gray-200 text-gray-500 hover:border-yellow-200'
+                }`}
+              >
+                مندوب توصيل
+              </button>
+            </div>
+          </div>
+
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2"
+            className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 mt-4"
           >
             {loading ? 'جاري التسجيل...' : (
               <>

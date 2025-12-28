@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Clock, MapPin, Check, X, User, DollarSign } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { useAuth } from '../context/AuthContext';
 
 interface RequestProps {
   request: {
@@ -18,10 +19,17 @@ interface RequestProps {
 }
 
 export const RequestCard = ({ request, onRefresh }: RequestProps) => {
+  const { user } = useAuth();
   const [timeLeft, setTimeLeft] = useState('');
   const [isExpired, setIsExpired] = useState(false);
 
   useEffect(() => {
+    // Only run timer for pending requests
+    if (request.status !== 'pending') {
+        setTimeLeft(request.status === 'accepted' ? 'تم القبول' : 'ملغي/منتهي');
+        return;
+    }
+
     const timer = setInterval(() => {
       const now = new Date().getTime();
       const expirationTime = new Date(request.expires_at).getTime();
@@ -39,12 +47,10 @@ export const RequestCard = ({ request, onRefresh }: RequestProps) => {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [request.expires_at]);
+  }, [request.expires_at, request.status]);
 
   const handleAction = async (action: 'accept' | 'ignore') => {
     if (action === 'ignore') {
-       // في التطبيق الحقيقي، قد نقوم بإخفاء الطلب محلياً فقط أو تحديث حالته
-       // هنا سنقوم بتحديث الحالة للتوضيح
        await supabase.from('delivery_requests').update({ status: 'ignored' }).eq('id', request.id);
     } else {
        await supabase.from('delivery_requests').update({ status: 'accepted' }).eq('id', request.id);
@@ -52,13 +58,19 @@ export const RequestCard = ({ request, onRefresh }: RequestProps) => {
     onRefresh();
   };
 
-  if (isExpired || request.status !== 'pending') return null;
+  // Hide expired requests for agents, but maybe show history for clients?
+  // For simplicity based on prompt:
+  if (isExpired && request.status === 'pending') return null;
 
   return (
-    <div className="bg-white rounded-2xl p-5 shadow-lg border border-gray-100 relative overflow-hidden animate-in slide-in-from-bottom duration-500">
-      {/* Timer Badge */}
-      <div className="absolute top-4 left-4 bg-red-50 text-red-600 px-3 py-1 rounded-full text-sm font-bold flex items-center gap-1 shadow-sm">
-        <Clock size={14} />
+    <div className={`rounded-2xl p-5 shadow-lg border relative overflow-hidden animate-in slide-in-from-bottom duration-500 ${
+        request.status === 'accepted' ? 'bg-green-50 border-green-200' : 'bg-white border-gray-100'
+    }`}>
+      {/* Timer/Status Badge */}
+      <div className={`absolute top-4 left-4 px-3 py-1 rounded-full text-sm font-bold flex items-center gap-1 shadow-sm ${
+          request.status === 'accepted' ? 'bg-green-100 text-green-700' : 'bg-red-50 text-red-600'
+      }`}>
+        {request.status === 'accepted' ? <Check size={14} /> : <Clock size={14} />}
         {timeLeft}
       </div>
 
@@ -72,7 +84,7 @@ export const RequestCard = ({ request, onRefresh }: RequestProps) => {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 mb-4 bg-gray-50 p-3 rounded-xl">
+      <div className="grid grid-cols-2 gap-3 mb-4 bg-white/50 p-3 rounded-xl">
         <div className="flex items-center gap-2 text-sm text-gray-600">
           <MapPin size={16} className="text-green-500" />
           <span>من: <span className="font-semibold text-gray-800">{request.from_area}</span></span>
@@ -93,22 +105,32 @@ export const RequestCard = ({ request, onRefresh }: RequestProps) => {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <button 
-          onClick={() => handleAction('accept')}
-          className="bg-green-500 hover:bg-green-600 text-white py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors shadow-md shadow-green-200"
-        >
-          <Check size={18} />
-          قبول الطلب
-        </button>
-        <button 
-          onClick={() => handleAction('ignore')}
-          className="bg-gray-100 hover:bg-gray-200 text-gray-600 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors"
-        >
-          <X size={18} />
-          تجاهل
-        </button>
-      </div>
+      {/* Show Action Buttons ONLY for Agents and ONLY if Pending */}
+      {user?.role === 'agent' && request.status === 'pending' && (
+        <div className="grid grid-cols-2 gap-3">
+          <button 
+            onClick={() => handleAction('accept')}
+            className="bg-green-500 hover:bg-green-600 text-white py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors shadow-md shadow-green-200"
+          >
+            <Check size={18} />
+            قبول الطلب
+          </button>
+          <button 
+            onClick={() => handleAction('ignore')}
+            className="bg-gray-100 hover:bg-gray-200 text-gray-600 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors"
+          >
+            <X size={18} />
+            تجاهل
+          </button>
+        </div>
+      )}
+      
+      {/* Status Message for Client */}
+      {user?.role === 'client' && request.status === 'accepted' && (
+         <div className="w-full bg-green-100 text-green-800 py-2 rounded-xl text-center font-bold text-sm">
+            تم قبول طلبك! المندوب في الطريق.
+         </div>
+      )}
     </div>
   );
 };

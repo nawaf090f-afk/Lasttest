@@ -1,9 +1,9 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 interface User {
   phone: string;
   name: string;
+  role: 'client' | 'agent'; // Added role
 }
 
 interface AuthContextType {
