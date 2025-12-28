@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, MapPin, DollarSign, Send, FileText } from 'lucide-react';
+import { X, MapPin, Send, FileText } from 'lucide-react';
 import { madaniAreas } from '../data/madaniAreas';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
@@ -136,7 +136,7 @@ export const NewRequestModal = ({ isOpen, onClose, onSuccess }: NewRequestModalP
             {/* السعر */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                <DollarSign size={16} />
+                <span className="font-bold text-yellow-600 text-xs border border-yellow-600 rounded px-1">ج.س</span>
                 السعر المقترح
               </label>
               <input
@@ -153,7 +153,7 @@ export const NewRequestModal = ({ isOpen, onClose, onSuccess }: NewRequestModalP
             {/* العمولة */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                <DollarSign size={16} className="text-yellow-600" />
+                <span className="font-bold text-yellow-600 text-xs border border-yellow-600 rounded px-1">ج.س</span>
                 عمولة الموقع (10%)
               </label>
               <div className="w-full p-3 bg-yellow-50 border border-yellow-100 rounded-xl text-yellow-800 font-bold">

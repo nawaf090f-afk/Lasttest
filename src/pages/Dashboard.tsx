@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { RecordingIndicator } from '../components/RecordingIndicator';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, Plus, Wallet, ShoppingBag } from 'lucide-react';
+import { UserCircle, Plus, Wallet, ShoppingBag } from 'lucide-react';
 import { NewRequestModal } from '../components/NewRequestModal';
 import { RequestCard } from '../components/RequestCard';
 import { supabase } from '../lib/supabase';
 
 export const Dashboard = () => {
-  const { logout, user } = useAuth();
+  const { user } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [requests, setRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,7 +33,7 @@ export const Dashboard = () => {
   useEffect(() => {
     fetchRequests();
     
-    // إعداد اشتراك للبيانات الحية (اختياري، هنا سنكتفي بالتحديث اليدوي عند الإضافة)
+    // إعداد اشتراك للبيانات الحية
     const interval = setInterval(fetchRequests, 10000); // تحديث كل 10 ثواني
     return () => clearInterval(interval);
   }, []);
@@ -48,17 +49,15 @@ export const Dashboard = () => {
       {/* Header */}
       <div className="relative z-10 px-6 pt-6 pb-4 flex justify-between items-center">
         <RecordingIndicator />
-        <div className="flex items-center gap-3">
-          <div className="text-yellow-900 font-bold hidden sm:block">
+        <Link 
+          to="/profile"
+          className="flex items-center gap-2 bg-white/40 hover:bg-white/60 py-2 px-3 rounded-full transition-all text-yellow-900 backdrop-blur-sm group"
+        >
+          <div className="font-bold hidden sm:block group-hover:text-yellow-800">
             {user?.name}
           </div>
-          <button 
-            onClick={logout}
-            className="bg-white/40 hover:bg-white/60 p-2 rounded-full transition-colors text-yellow-900 backdrop-blur-sm"
-          >
-            <LogOut size={20} />
-          </button>
-        </div>
+          <UserCircle size={24} />
+        </Link>
       </div>
 
       {/* Main Content */}
@@ -82,7 +81,12 @@ export const Dashboard = () => {
             <div className="bg-yellow-800 p-4 rounded-full group-hover:bg-yellow-700 transition-colors">
               <Wallet size={32} className="text-yellow-200" />
             </div>
-            <span className="font-bold text-lg">المحفظة / طلباتي</span>
+            <div className="text-center">
+              <span className="font-bold text-lg block">المحفظة</span>
+              <span className="text-yellow-300 text-sm font-medium mt-1 block dir-ltr">
+                رصيدي: 0.00 ج.س
+              </span>
+            </div>
           </button>
         </div>
 
